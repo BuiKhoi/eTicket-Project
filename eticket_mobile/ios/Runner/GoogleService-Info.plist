@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>990730049405-dmmijmedc1cq4eqlqaq2t3ieq488ue5c.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.990730049405-dmmijmedc1cq4eqlqaq2t3ieq488ue5c</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBGwdmpLUIHAK-cS48wgD1o841XQzfyPWs</string>
+	<key>GCM_SENDER_ID</key>
+	<string>990730049405</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>bkhoi.eticket</string>
+	<key>PROJECT_ID</key>
+	<string>devfest-2019-255504</string>
+	<key>STORAGE_BUCKET</key>
+	<string>devfest-2019-255504.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:990730049405:ios:e7f4d4dde66ac7692c9e14</string>
+	<key>DATABASE_URL</key>
+	<string>https://devfest-2019-255504.firebaseio.com</string>
+</dict>
+</plist>

@@ -1,0 +1,150 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1671\cocoasubrtf200
+{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;\f1\fnil\fcharset0 Menlo-Regular;}
+{\colortbl;\red255\green255\blue255;\red21\green23\blue25;\red237\green236\blue236;\red0\green0\blue0;
+}
+{\*\expandedcolortbl;;\cssrgb\c10980\c11765\c12941;\cssrgb\c94510\c94118\c94118;\cssrgb\c0\c0\c0;
+}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs30 \cf2 \cb3 \expnd0\expndtw0\kerning0
+'use strict';\cf0 \cb1 \
+\cf2 \cb3  \cf0 \cb1 \
+\cf2 \cb3 const functions = require('firebase-functions');\cf0 \cb1 \
+\cf2 \cb3 const \{dialogflow, Permission, BasicCard, Image, Button\} = require('actions-on-google');\cf0 \cb1 \
+\
+\cf2 \cb3 const admin = require('firebase-admin');\cf0 \cb1 \
+\cf2 \cb3 const \{WebhookClient\} = require('dialogflow-fulfillment');\cf0 \cb1 \
+\cf2 \cb3 const \{Card, Suggestion\} = require('dialogflow-fulfillment');\cf0 \cb1 \
+\
+\cf2 \cb3 admin.initializeApp(\{\cf0 \cb1 \
+\cf2 \cb3   credential: admin.credential.applicationDefault(),\cf0 \cb1 \
+\cf2 \cb3   databaseURL: 'ws://{\field{\*\fldinst{HYPERLINK "https://l.facebook.com/l.php?u=http%3A%2F%2Fdevfest-2019-255504.firebaseio.com%2F%3Ffbclid%3DIwAR0RfBhy7jSIesF1xaGxolSzLHoG8-MZsKOIW8p9tNQHnPtwytk0a5_qjVo&h=AT1WoEOKr01lVB7cAkRHI7YrX-n431JdGkSKHftZdBu0qKIX0urfyHGs2dpunzSTxiufrt2GA2MmteyyJdfyGzz-i2eulQRsYpiG7kDQGZudcHCYWkyk95x1jsjwNCZRRvKRMnRnddY"}}{\fldrslt \ul devfest-2019-255504.firebaseio.com/}}'\cf0 \cb1 \
+\cf2 \cb3 \});\cf0 \cb1 \
+\
+\cf2 \cb3 process.env.DEBUG = 'dialogflow:debug'; \cf0 \cb1 \
+\cf2 \cb3  \cf0 \cb1 \
+\cf2 \cb3 const app = dialogflow();\cf0 \cb1 \
+\cf2 \cb3 //const agent = new WebhookClient(); \cf0 \cb1 \
+\cf2 \cb3 app.intent('ShowRanking', (conv) => \{\cf0 \cb1 \
+\cf2 \cb3   	return admin.database().ref('Users').once('value').then((snapshot) => \{\cf0 \cb1 \
+\cf2 \cb3       	var toppoints = [0,0,0];\cf0 \cb1 \
+\cf2 \cb3       	var topnames = ["","",""];\cf0 \cb1 \
+\cf2 \cb3       	var topUsers = ["","",""];\cf0 \cb1 \
+\cf2 \cb3       	var min = 0;\cf0 \cb1 \
+\cf2 \cb3       	snapshot.forEach(function(childSnapshot) \{\cf0 \cb1 \
+\cf2 \cb3       			// key will be "ada" the first time and "alan" the second time\cf0 \cb1 \
+\cf2 \cb3       				var key = childSnapshot.key;\cf0 \cb1 \
+\cf2 \cb3       			// childData will be the actual contents of the child\cf0 \cb1 \
+\cf2 \cb3       				var childData = childSnapshot.val();\cf0 \cb1 \
+\cf2 \cb3           			topnames.sort();	\cf0 \cb1 \
+\cf2 \cb3        				topnames.reverse();\cf0 \cb1 \
+\cf2 \cb3        				toppoints.sort();	\cf0 \cb1 \
+\cf2 \cb3        				topUsers.sort();\cf0 \cb1 \
+\cf2 \cb3        				toppoints.reverse();\cf0 \cb1 \
+\cf2 \cb3        				topUsers.reverse();\cf0 \cb1 \
+\cf2 \cb3                     if(childData.Points > toppoints[2])\{\cf0 \cb1 \
+\cf2 \cb3                        	toppoints[2] = childData.Points;\cf0 \cb1 \
+\cf2 \cb3                        	topUsers[2] = key;\cf0 \cb1 \
+\cf2 \cb3                       	topnames[2] = childData.Name;\cf0 \cb1 \
+\cf2 \cb3                     \}\cf0 \cb1 \
+\cf2 \cb3         \});\cf0 \cb1 \
+\cf2 \cb3       	conv.ask(
+\f1 1. $\{topnames[0]\} : $\{toppoints[0]\}\\n2. $\{topnames[1]\} : $\{toppoints[1]\}\\n3. $\{topnames[2]\} : $\{toppoints[2]\}
+\f0 );\cf0 \cb1 \
+\cf2 \cb3     \});\cf0 \cb1 \
+\cf2 \cb3 \});\cf0 \cb1 \
+\cf2 \cb3 app.intent('RequestPermission', (conv) => \{\cf0 \cb1 \
+\cf2 \cb3 	conv.data.requestedPermission = 'DEVICE_PRECISE_LOCATION';\cf0 \cb1 \
+\cf2 \cb3 	conv.ask(new Permission(\{\cf0 \cb1 \
+\cf2 \cb3 		context: 'to locate you',\cf0 \cb1 \
+\cf2 \cb3 		permissions: conv.data.requestedPermission,\cf0 \cb1 \
+\cf2 \cb3 	\}));\cf0 \cb1 \
+\cf2 \cb3  \cf0 \cb1 \
+\cf2 \cb3 \});\cf0 \cb1 \
+\cf2 \cb3 app.intent('LocateUser', (conv, params, permissionGranted) => \{\cf0 \cb1 \
+\cf2 \cb3 	if (permissionGranted) \{\cf0 \cb1 \
+\cf2 \cb3 		const \{requestedPermission\} = conv.data;\cf0 \cb1 \
+\cf2 \cb3         if (requestedPermission === 'DEVICE_PRECISE_LOCATION') \{\cf0 \cb1 \
+\
+\cf2 \cb3             const \{coordinates\} = conv.device.location;\cf0 \cb1 \
+\cf2 \cb3             // const city=conv.device.location.city;\cf0 \cb1 \
+\cf2 \cb3  \cf0 \cb1 \
+\cf2 \cb3             if (coordinates) \{\cf0 \cb1 \
+\cf2 \cb3               return admin.database().ref('GarbageBin').once('value').then((snapshot) => \{\cf0 \cb1 \
+\cf2 \cb3     				var lat = 0;\cf0 \cb1 \
+\cf2 \cb3     				var long = 0;\cf0 \cb1 \
+\cf2 \cb3                 	var arrLat = [0,0,0];\cf0 \cb1 \
+\cf2 \cb3                 	var arrLong = [0,0,0];\cf0 \cb1 \
+\cf2 \cb3                 	var dist = 9999999;\cf0 \cb1 \
+\cf2 \cb3     				snapshot.forEach(function(childSnapshot) \{\cf0 \cb1 \
+\cf2 \cb3       				// key will be "ada" the first time and "alan" the second time\cf0 \cb1 \
+\cf2 \cb3       					var key = childSnapshot.key;\cf0 \cb1 \
+\cf2 \cb3       				// childData will be the actual contents of the child\cf0 \cb1 \
+\cf2 \cb3       					var childData = childSnapshot.val();\cf0 \cb1 \
+\cf2 \cb3           				lat = childData.Latitude;\cf0 \cb1 \
+\cf2 \cb3           				long = childData.Longitude;\cf0 \cb1 \
+\cf2 \cb3                         if(dist > Math.sqrt(Math.pow((coordinates.latitude - lat),2) + Math.pow((coordinates.longitude - long),2)))\cf0 \cb1 \
+\cf2 \cb3                         \{\cf0 \cb1 \
+\cf2 \cb3                           	arrLat[2] = arrLat[1];\cf0 \cb1 \
+\cf2 \cb3                             arrLat[1] = arrLat[0];\cf0 \cb1 \
+\cf2 \cb3                             arrLat[0] = lat;\cf0 \cb1 \
+\cf2 \cb3                             arrLong[2] = arrLong[1];\cf0 \cb1 \
+\cf2 \cb3                             arrLong[1] = arrLong[0];\cf0 \cb1 \
+\cf2 \cb3                             arrLong[0] = long;\cf0 \cb1 \
+\cf2 \cb3                           	dist = Math.sqrt(Math.pow((coordinates.latitude - lat),2) + Math.pow((coordinates.longitude - long),2));\cf0 \cb1 \
+\cf2 \cb3                         \}\cf0 \cb1 \
+\cf2 \cb3         			\});\cf0 \cb1 \
+\cf2 \cb3                 	var R = 6378137; // Earth\'92s mean radius in meter\cf0 \cb1 \
+\cf2 \cb3   					var dLat = (arrLat[0] - coordinates.latitude)* Math.PI / 180;\cf0 \cb1 \
+\cf2 \cb3  					var dLong = (arrLong[0] - coordinates.longitude)* Math.PI / 180;\cf0 \cb1 \
+\cf2 \cb3   					var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +\cf0 \cb1 \
+\cf2 \cb3     					Math.cos((coordinates.latitude)* Math.PI / 180) * Math.cos((arrLat[0])* Math.PI / 180) *\cf0 \cb1 \
+\cf2 \cb3     					Math.sin(dLong / 2) * Math.sin(dLong / 2);\cf0 \cb1 \
+\cf2 \cb3   					var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\cf0 \cb1 \
+\cf2 \cb3   					var d = R * c/1000;\cf0 \cb1 \
+\cf2 \cb3                 	d = d.toFixed(1);\cf0 \cb1 \
+\cf2 \cb3                     conv.ask(
+\f1 The nearest bin is $\{d\} km away
+\f0 );\cf0 \cb1 \
+\cf2 \cb3                 	\cf0 \cb1 \
+\cf2 \cb3                 	conv.ask(new BasicCard(\{\cf0 \cb1 \
+\cf2 \cb3                     	text: 
+\f1 Click here for trash bin locations
+\f0 , \cf0 \cb1 \
+\cf2 \cb3                     	subtitle: 'Go To The Trash Bin',\cf0 \cb1 \
+\cf2 \cb3                     	title: 'Green Up',\cf0 \cb1 \
+\cf2 \cb3                     	buttons: new Button(\{\cf0 \cb1 \
+\cf2 \cb3                       		title: 'Open Map',\cf0 \cb1 \
+\cf2 \cb3                       		url: 
+\f1 https://www.google.com/maps/dir/?api=1&origin=$\{coordinates.latitude\},$\{coordinates.longitude\}&destination=$\{arrLat[0]\},$\{arrLong[0]\}&travelmode=driving
+\f0 \cf0 \cb1 \
+\cf2 \cb3                     	\}),\cf0 \cb1 \
+\cf2 \cb3                     	image: new Image(\{\cf0 \cb1 \
+\cf2 \cb3                       		url: `{\field{\*\fldinst{HYPERLINK "https://l.facebook.com/l.php?u=https%3A%2F%2Fmaps.googleapis.com%2Fmaps%2Fapi%2Fstaticmap%3Fcenter%3D%2524%257Bcoordinates.latitude%257D%252C%2524%257Bcoordinates.longitude%26fbclid%3DIwAR2cDElEjdb4YVXBfPgjDec5yo_tDOyX1nPu4Ja5QMvERtkTWOFdhpnTpZI&h=AT1WoEOKr01lVB7cAkRHI7YrX-n431JdGkSKHftZdBu0qKIX0urfyHGs2dpunzSTxiufrt2GA2MmteyyJdfyGzz-i2eulQRsYpiG7kDQGZudcHCYWkyk95x1jsjwNCZRRvKRMnRnddY"}}{\fldrslt \ul https://maps.googleapis.com/maps/api/staticmap?center=$\{coordinates.latitude\},$\{coordinates.longitude}}\}\cf0 \cb1 \
+\cf2 \cb3 									&zoom=16\cf0 \cb1 \
+\cf2 \cb3 									&size=400x400\cf0 \cb1 \
+\cf2 \cb3 									&markers=color:red%7C$\{coordinates.latitude\},$\{coordinates.longitude\}&markers=size:tiny\cf0 \cb1 \
+\cf2 \cb3 									&markers=color:green%7C$\{arrLat[0]\},$\{arrLong[0]\}&markers=size:tiny\cf0 \cb1 \
+\cf2 \cb3 									&markers=color:green%7C$\{arrLat[1]\},$\{arrLong[1]\}&markers=size:tiny\cf0 \cb1 \
+\cf2 \cb3 									&markers=color:green%7C$\{arrLat[2]\},$\{arrLong[2]\}&markers=size:tiny\cf0 \cb1 \
+\cf2 \cb3 									&key=AIzaSyCri2Ge8OudA-diQcXMpvvlOU-aYlOZhMw`,\cf0 \cb1 \
+\cf2 \cb3                       		alt: 'Image alternate text'\cf0 \cb1 \
+\cf2 \cb3                     	\}),\cf0 \cb1 \
+\cf2 \cb3                     	display: 'CROPPED'\cf0 \cb1 \
+\cf2 \cb3                  	\}));\cf0 \cb1 \
+\cf2 \cb3                 \});\cf0 \cb1 \
+\cf2 \cb3                       \cf0 \cb1 \
+\cf2 \cb3             \} else \{\cf0 \cb1 \
+\cf2 \cb3                 return conv.ask('Sorry, I could not figure out where you are.');\cf0 \cb1 \
+\cf2 \cb3             \}\cf0 \cb1 \
+\
+\cf2 \cb3         \}\cf0 \cb1 \
+\cf2 \cb3       	        \cf0 \cb1 \
+\cf2 \cb3 	\} else \{\cf0 \cb1 \
+\cf2 \cb3 		return conv.ask('Sorry, permission denied.');\cf0 \cb1 \
+\cf2 \cb3 	\}\cf0 \cb1 \
+\cf2 \cb3 \});\cf0 \cb1 \
+\cf2 \cb3  \cf0 \cb1 \
+\cf2 \cb3 exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);}
